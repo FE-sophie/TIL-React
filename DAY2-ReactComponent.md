@@ -233,7 +233,7 @@ export default Hello;
 
 
 
-![image-20201229133734965](C:\Users\imac\AppData\Roaming\Typora\typora-user-images\image-20201229133734965.png)
+![image-20201229133734965](.img/image-20201229133734965.png)
 
 <p style="text-align:center" props를 콘솔로 출력한 결과></p>
 
@@ -303,7 +303,7 @@ export default Wrapper;
 
 
 
-![image-20201230040611406](C:\Users\imac\AppData\Roaming\Typora\typora-user-images\image-20201230040611406.png)
+![image-20201230040611406](.img/image-20201230040611406.png)
 
 <center>Hello 컴포넌트가 렌더링 되지 않은 것을 알 수 있다.</center>
 
@@ -327,7 +327,7 @@ export default Wrapper;
 
 ```
 
-![image-20201230040854731](C:\Users\imac\AppData\Roaming\Typora\typora-user-images\image-20201230040854731.png)
+![image-20201230040854731](.img/image-20201230040854731.png)
 
 <center>Hello 컴포넌트가 렌더링되었다.</center>
 
@@ -458,7 +458,7 @@ useState라는 함수는 배열을 반환하는데 첫번째 원소는 현재상
 
 아래 코드를 보면 number는 현재 상태를 의미하고(최초 렌더링시 기본값으로 입력한 0을 갖는다.) setNumber가 이 상태를 변경하는 함수로써 사용하겠다는 것을 알수 있다.
 
-![image-20201230023434519](C:\Users\imac\AppData\Roaming\Typora\typora-user-images\image-20201230023434519.png)
+![image-20201230023434519](.img/image-20201230023434519.png)
 
 
 

@@ -344,6 +344,6 @@ const store = createStore(rootReducer, composeWithDevTools());
 
 
 
-![image-20210105231942289](C:\Users\imac\AppData\Roaming\Typora\typora-user-images\image-20210105231942289.png)
+![](C:\Users\imac\Desktop\TIL-React\img\image-20210105231942289.png)
 
 <center>페이지에서 리덕스 개발자도구를 열면 나오는 화면</center>

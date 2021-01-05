@@ -12,7 +12,7 @@
 
 useState를 통해 input 상태를 관리해보자
 
-![image-20201230182137612](C:\Users\imac\AppData\Roaming\Typora\typora-user-images\image-20201230182137612.png)
+![image-20201230182137612](./img/image-20201230182137612.png)
 
 ```react
 //App.js
@@ -94,7 +94,7 @@ input에 텍스트를 입력하면 Change이벤트를 감지하여 setText함수
 
 그렇게 하면 버튼을 눌렀을때 click이벤트가 발생하고 setText('')가 실행되어 text의 상태값이 빈문자열로 업데이트가되는데(초기화) input요소가 text라는 상태를 value값으로 갖고있기때문에 input 의 입력창도 빈문자열로 업데이트가되면서 초기화가 된다.
 
-![image-20201230182233260](C:\Users\imac\AppData\Roaming\Typora\typora-user-images\image-20201230182233260.png)
+![image-20201230182233260](./img/image-20201230182233260.png)
 
 #### 2개 이상의 Input 상태 관리
 
@@ -184,7 +184,7 @@ return (
   );
 ```
 
-![image-20210102004325081](C:\Users\imac\AppData\Roaming\Typora\typora-user-images\image-20210102004325081.png)
+![image-20210102004325081](./img/image-20210102004325081.png)
 
 <center>결과 화면</center>
 

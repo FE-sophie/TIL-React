@@ -8,6 +8,35 @@ Ducks패턴은 한 파일에 액션 타입,액션생성함수,리듀서 함수�
 
 이렇게 작성된 파일을 리덕스 모듈이라고 하며 나중에 액션 생성 함수를 불러올때 하나씩불러오거나 한꺼번에 불러올 수도 있다. Ducks패턴은 특히 리덕스를 처음 배우는 과정에서 사용하면 정말 쉽고 편하다. (리덕스 관련 코드들을 불리하는 방식은 정해지지 않았기 때문에 자유롭게 변경해도 상관은 없다.)
 
+
+
+모듈을 만들때는 다음 순서를 기억하자
+
+1.액션 타입 선언
+2.액션생성함수 선언
+3.초기상태 선언
+4.리듀서를 만듬 리듀서에서 state=초기상태를 지정해주고 액션타입이 뭐냐에따라서 다른 작업을 하게 한다.
+5.아래와 같이 루트리듀서를 만들어 여러개의 리듀서들을 하나로 합쳐주도록 한다.
+
+```react
+import { combineReducers } from "redux"; 
+import counter from "./counter"; 
+import todos from "./todos"; 
+
+
+const rootReducer = combineReducers({
+  counter,
+  todos,
+});
+
+
+export default rootReducer;
+
+
+```
+
+
+
 ### 리덕스 모듈 만들기 -실습
 
 다음과 같이 리덕스 모듈을 만들어보자!
@@ -121,7 +150,7 @@ modules/index.js 에 루트 리듀서를 만들어서 counter.js,todos,js 이 �
 
 import { combineReducers } from "redux"; //루트 리듀서를 만들 때에는 combineReducers라는 함수를 redux에서 받아와서 사용
 import counter from "./counter"; //counter리듀서 불러오기
-import todos from "./todos"; //tpdos리듀서 불러오기
+import todos from "./todos"; //todos리듀서 불러오기
 
 //루트 리듀서 만들기
 const rootReducer = combineReducers({
@@ -308,7 +337,7 @@ import { composeWithDevTools } from "redux-devtools-extension"; //
 
 4. createStore 안에 두번째 파라미터로 composeWithDevTools를 호출해준다.
 
-```
+```react
 const store = createStore(rootReducer, composeWithDevTools());
 ```
 
@@ -317,3 +346,133 @@ const store = createStore(rootReducer, composeWithDevTools());
 ![](./img/image-20210105231942289.png)
 
 <center>페이지에서 리덕스 개발자도구를 열면 나오는 화면</center>
+
+### TodoList 구현
+
+
+
+리덕스 모듈에 기반해서 Todo리스트를 구현해보자
+
+우선 todos 프리젠테이셔널 컴포넌트 3개를 Todos.js라는 파일에 아래와 같이 코드를 작성한다.
+
+```react
+//프리젠테이셔널 컴포넌트 3개 => TodoItem(할일항목1개 보여줌),TodoList(여러개 할일 항목을 보여줌),Todos( TodoList와 새로운 항목을 등록할 수 있는 폼을 렌더링)
+
+import React, { useState } from "react";
+
+//TodoItem컴포넌트 만들기
+//todo,onToggle props를 가져옴
+//todo객체는 todos 리덕스 모듈에서 관리하고 있는 배열안에 todo 객체
+
+//React.memo로 최적화
+const TodoItem = React.memo(function TodoItem({ todo, onToggle }) {
+  return (
+    <li
+      style={{
+        textDecoration: todo.done ? "line-through" : "none",
+      }}
+      onClick={() => onToggle(todo.id)}
+    >
+      {todo.text}
+    </li>
+  );
+});
+//TodoList컴포넌트 만들기
+//todos,onToggle props를 가져옴
+//todos는 여러개의 todo가 들어있는 배열
+//React.memo로 최적화
+
+const TodoList = React.memo(function TodoList({ todos, onToggle }) {
+  return (
+    <ul>
+      {todos.map((todo) => (
+        <TodoItem key={todo.id} todo={todo} onToggle={onToggle} />
+      ))}
+    </ul>
+  );
+});
+//Todos 컴포넌트
+//Todos,onCreate,onToggle props를 가져옴
+//여기서는 상태관리를 해줄건데 근데 그 상태 관리를 리덕스에서 하지않고 로컬 useState를 사용해서 관리해줌
+//리덕스를 사용한다고 해서 모든 상태 관리를 리덕스를 통해서만 해야하는것은 아님
+//=> 필요한 경우에 컴포넌트내부에서 로컬 스테이트 즉, useState 훅을 사용해서 관리해줘도됨
+//React.memo로 최적화
+
+function Todos({ todos, onCreate, onToggle }) {
+  const [text, setText] = useState("");
+  const onChange = (e) => setText(e.target.value);
+  const onSubmit = (e) => {
+    e.preventDefault();
+    onCreate(text);
+    setText("");
+  };
+  return (
+    <div>
+      <form onSubmit={onSubmit}>
+        <input
+          value={text}
+          onChange={onChange}
+          placeholder="할 일을 입력하세요..."
+        />
+        <button type="submit">등록</button>
+      </form>
+      <TodoList todos={todos} onToggle={onToggle} />
+    </div>
+  );
+}
+
+export default React.memo(Todos);
+
+```
+
+ 
+
+그 다음 아래와 같이 TodosContiner 컨테이너 컴포넌트를 만든다.
+
+```react
+import React, { useCallback } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import Todos from "../components/Todos";
+import { addTodo, toggleTodo } from "../modules/todos"; //액션생성함수를 불러온다.
+
+// useSelector를 통해서 상태를 조회
+//useDispatch()를 통해서 스토어의 디스패치를 사용함
+function TodosContainer() {
+  const todos = useSelector((state) => state.todos);
+  const dispatch = useDispatch();
+
+  //함수들을 재사용할 수 있도록 useCallback을 사용해서 최적화를 해줌 ,ESLINT규칙상 []안에 dispatch입력
+  const onCreate = useCallback((text) => dispatch(addTodo(text)), [dispatch]); //파라미터로 받은 text를 넣고 addTodo액션 생성함수가 호출됨=> 액션객체 생성 =>디스패치되면 리듀서에서 상태를 업데이트해줌
+
+  const onToggle = useCallback((id) => dispatch(toggleTodo(id)), [dispatch]); //파라미터로 받은 id를 넣고 toggleTodo액션 생성함수가 호출됨=> 액션객체 생성 =>디스패치되면 리듀서에서 상태를 업데이트 해줌
+
+  return <Todos todos={todos} onCreate={onCreate} onToggle={onToggle} />;
+}
+
+export default TodosContainer;
+
+```
+
+그다음 App.js에서 렌더링을 해준다.
+
+```react
+import React from "react";
+import CounterContainer from "./containers/CounterContainer";
+import TodosContainer from "./containers/TodosContainer";
+
+function App() {
+  return (
+    <div>
+      <CounterContainer />
+      <hr />
+      <TodosContainer />
+    </div>
+  );
+}
+
+export default App;
+
+```
+
+
+

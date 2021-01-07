@@ -356,6 +356,7 @@ const store = createStore(rootReducer, composeWithDevTools());
 우선 todos 프리젠테이셔널 컴포넌트 3개를 Todos.js라는 파일에 아래와 같이 코드를 작성한다.
 
 ```react
+//components/Todos.js
 //프리젠테이셔널 컴포넌트 3개 => TodoItem(할일항목1개 보여줌),TodoList(여러개 할일 항목을 보여줌),Todos( TodoList와 새로운 항목을 등록할 수 있는 폼을 렌더링)
 
 import React, { useState } from "react";
@@ -425,11 +426,13 @@ export default React.memo(Todos);
 
 ```
 
- 
+
 
 그 다음 아래와 같이 TodosContiner 컨테이너 컴포넌트를 만든다.
 
 ```react
+//containers/TodosContainer.js
+
 import React, { useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import Todos from "../components/Todos";
@@ -474,5 +477,126 @@ export default App;
 
 ```
 
+### connect HOC 함수
 
+connect HOC 함수를 통해 클래스형 컴포넌트에서 리덕스를 연동하는 방법에 대해 알아보자.
+
+(HOC란? 재사용되는 값 함수를 props를 통해서 받아올수 있게 해주는 옛날 패턴이다. 이 패턴은 현재 Hook이 대체하고있기 때문에 잘 사용하지 않는다.)
+
+이 함수는 사실 별로 쓸 일은 없다. 이 함수보다 우리가 이전에 배운 useSelector와 useDispatch를 사용하는 것이 우선되어야 한다. 컴포넌트를 만들 때 함수형 컴포넌트로 작성하는 것이 우선되어야 하지만 어쩔 수 없이 클래스 형 컴포넌트로 작성해야 하는 경우도 생기기 때문에 (옛날에 만든 컴포넌트라든지 함수형 컴포넌트로는 구현할 수 없는 예를 들어 component did catch 같은 라이프사이클 메서드를 쓴다든지 하는 경우에 ) 사용하는 함수이다.
+
+이 함수를 사용하면 컴포넌트의 Props를 통해서 리덕스의 상태 또는 액션을 디스패치하는 함수를 받아올 수 있다. 옛날에는 connect 함수를 사용하는 것이 메인이었으나 2019년 중순쯤에 useSelector와 useDispatch가 소개되면서 더 이상 connect를 쓸 이유가 없어졌는데 그래도 필요한 경우가 있으니 알아두면 좋을 것이다.
+
+connect을 사용하는 것이 클래스형 컴포넌트에서 리덕스와 연동하는 유일한 방법이긴 하지만 HOC이기때문에 함수형 컴포넌트에서 사용법이 다를게 없으므로 connect를 꼭 클래스형 컴포넌트에서만 쓸 필요는 없다 )
+
+
+
+위에서 살펴본 hook으로 작성한 컨테이너 구현 예제처럼  connect를 사용하여 새롭게 컨테이너를 구현해보자
+
+
+1.connect를 사용해서 counter 컨테이너를 구현해보자
+
+```react
+import React from "react";
+// import { bindActionCreators } from "redux";
+import Counter from "../components/Counter";
+import { connect } from "react-redux";
+import { increase, decrease, setDiff } from "../modules/counter";
+
+// function CounterContainer({ number, diff, onIncrease, onDecrease, onSetDiff }) {
+//bindActionCreators사용하면서 props 이름이 달라짐 onIncrease=> increase ....
+function CounterContainer({ number, diff, increase, decrease, setDiff }) {
+  return (
+    <Counter
+      number={number}
+      diff={diff}
+      onIncrease={increase} //{onIncrease}
+      onDecrease={decrease} //{onDecrease}
+      onSetDiff={setDiff} //{onSetDiff}
+    />
+  );
+}
+//connect라는 함수를 사용할때는 두가지 함수를 선언해주어야한다.
+//첫번째 함수
+const mapStateToProps = (state) => ({
+  //useSelector안에 넣어준 함수랑 비슷
+  //state를 파라미터로 가져와서 CounterContainer 컴포넌트에 넣어주고 싶은 props를 객체 안에넣어주면됨
+  number: state.counter.number,
+  diff: state.counter.diff,
+});
+
+//두번째 함수 선언 방식 3가지
+
+//1.
+// const mapDispatchToProps = (dispatch) => ({
+//   //컴포넌트에 props로 넣어줄 함수를 만들어주면됨=> CounterContainer에서 props로 받는다
+//   onIncrease: () => dispatch(increase()),
+//   onDecrease: () => dispatch(decrease()),
+//   onSetDiff: (diff) => dispatch(setDiff(diff)),
+// });
+
+//2.
+//아래 방법대로 하면 위의 코드 처럼 하나하나 디스패치로 감싸서 액션 생성안해줘도 됨
+// const mapDispatchToProps = (dispatch) =>
+//   bindActionCreators(
+//     {
+//       increase,
+//       decrease,
+//       setDiff,
+//     },
+//     dispatch
+//   );
+
+//3.
+//더 간단한 방법이다.
+//mapDispatchToProps 가 함수가 아니라 객체타입이면 bindActionCreators가 connect 내부에서 자동으로 되서 그냥 이렇게 써도 작동됨
+const mapDispatchToProps = {
+  increase,
+  decrease,
+  setDiff,
+};
+
+//connect 사용법-두줄
+//아래 한줄 코드를 두줄로 분해하면 다음과 같다고 할수있다- 이해를 위해 작성
+// const enhance = connect(mapStateToProps,mapDispatchToProps)
+// export default enhance(CounterContainer)
+
+//connect사용법-한줄
+// connect()를 하면(호출) 하나의 함수가 만들어지는데 이 함수에 CounterContainer를 넣음
+export default connect(mapStateToProps, mapDispatchToProps)(CounterContainer);
+
+```
+
+
+
+2.connect를 사용해서 todos 컨테이너를 구현해보자
+
+```react
+import React, { useCallback } from "react";
+import { connect } from "react-redux";
+import Todos from "../components/Todos";
+import { addTodo, toggleTodo } from "../modules/todos"; //액션생성함수를 불러온다.
+
+function TodosContainer({ todos, addTodo, toggleTodo }) {
+  const onCreate = useCallback((text) => addTodo(text), [addTodo]);
+  const onToggle = useCallback((id) => toggleTodo(id), [toggleTodo]);
+
+  return <Todos todos={todos} onCreate={onCreate} onToggle={onToggle} />;
+}
+
+const mapStateToProps = (state) => ({ todos: state.todos }); //꼭 객체 형태로 리턴해야함
+const mapDispatchToProps = {
+  //mapDispatchToProps을 객체 타입으로 만들면 bindActionCreators가 자동으로 된다.
+  addTodo,
+  toggleTodo,
+};
+export default connect(mapStateToProps, mapDispatchToProps)(TodosContainer);
+
+```
+
+
+
+두개의 컨테이너 구현이 끝나면 다음과 같이 잘 구현이 되는지 확인해본다.
+
+![image-20210107021811340](./img/image-20210107021811340.png)
 
